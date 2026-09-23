@@ -6,11 +6,15 @@
 
 #include <GLFW/glfw3.h>
 
-int main() {
+// my data type :)
+#include "core/Canvas.h"
+#include "core/CanvasViewport.h"
+
+GLFWwindow* initializeWindow() {
     // Initialize GLFW window
-    if (!glfwInit()) return -1;
+    if (!glfwInit()) return nullptr;
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Hello world!", nullptr, nullptr);
-    if (!window) { glfwTerminate(); return -1; }
+    if (!window) { glfwTerminate(); return nullptr; }
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
@@ -26,6 +30,21 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
+    return window;
+};
+
+int main() {
+    GLFWwindow* window = initializeWindow();
+    if (window == nullptr) { return -1; }
+
+    Canvas canvas(80, 25);
+    canvas.SetCell(0, 0, 'A', 0xFFFFFFFF, 0x000000FF);
+    canvas.SetCell(1, 1, 'B', 0xFF0000FF, 0x000000FF);
+    canvas.SetCell(2, 2, 'C', 0xFF00FF00, 0x000000FF);
+    canvas.SetCell(3, 3, 'D', 0xFFFF0000, 0x000000FF);
+
+    CanvasViewport viewport;
+
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -33,11 +52,13 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
         ImGui::Begin("Test!");
         ImGui::Text("Lalala..");
         ImGui::End();
 
+        viewport.RenderCanvas(canvas);
         ImGui::Render();
 
         int display_w, display_h;
