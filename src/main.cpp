@@ -8,7 +8,7 @@
 
 // my data type :)
 #include "core/Canvas.h"
-#include "core/CanvasViewport.h"
+#include "gui/CanvasViewport.h"
 
 GLFWwindow* initializeWindow() {
     // Initialize GLFW window

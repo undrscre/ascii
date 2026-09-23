@@ -1,19 +1,29 @@
 #pragma once
 
 #include "imgui.h"
-#include "Canvas.h"
+#include "../core/Canvas.h"
+#include <iostream>
 #include <tuple>
 
 class CanvasViewport {
 public:
+    float zoom_factor = 1.0f;
+    ImVec2 pan_offset = ImVec2(0.0f, 0.0f);
+
     bool render_grid = true;
-    ImColor grid_color = IM_COL32(50, 50, 50, 255);
+    ImColor grid_color_first = IM_COL32(50, 50, 50, 255);
+    ImColor grid_color_secondary = IM_COL32(80, 80, 80, 255);
  
     // TODO: render with custom font
     void RenderCanvas(Canvas& canvas) {
         ImGui::Begin("Canvas Viewport", nullptr);
 
-        ImVec2 char_size   = ImGui::CalcTextSize("M");
+        ImVec2 base_char_size = ImGui::CalcTextSize("M");
+        ImVec2 char_size = ImVec2(
+            base_char_size.x * zoom_factor,
+            base_char_size.y * zoom_factor
+        );
+
         ImVec2 canvas_size = ImVec2(
             canvas.width * char_size.x, 
             canvas.height * char_size.y
@@ -25,14 +35,18 @@ public:
 
         ImVec2 start_cursor = ImGui::GetCursorScreenPos();
         ImVec2 canvas_pos = ImVec2(
-            start_cursor.x + (offset_x > 0.0f ? offset_x : 0.0f),
-            start_cursor.y + (offset_y > 0.0f ? offset_y : 0.0f)
+            start_cursor.x + (offset_x > 0.0f ? offset_x : 0.0f) + pan_offset.x,
+            start_cursor.y + (offset_y > 0.0f ? offset_y : 0.0f) + pan_offset.y
         );
 
         ImGui::SetCursorScreenPos(canvas_pos);
 
         // inputs
-        ImGui::InvisibleButton("##canvas_hitbox", canvas_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+        ImGui::InvisibleButton("##canvas_hitbox", canvas_size, 
+            ImGuiButtonFlags_MouseButtonLeft | 
+            ImGuiButtonFlags_MouseButtonRight |
+            ImGuiButtonFlags_MouseButtonMiddle
+        );
 
         bool is_active = ImGui::IsItemActive();
         bool is_hovered = ImGui::IsItemHovered();
@@ -49,6 +63,23 @@ public:
             canvas.SetCell(cell_x, cell_y, ' ', 0xFFFFFFFF, 0xFFFFFFFF);
         }
 
+        if (is_active && ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+            ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+            pan_offset = ImVec2(
+                pan_offset.x + mouse_delta.x,
+                pan_offset.y + mouse_delta.y
+            );
+        }
+        
+        if (is_hovered && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+            float wheel = ImGui::GetIO().MouseWheel;
+            if (wheel != 0.0f) {
+                zoom_factor += wheel * 0.1f;
+                if (zoom_factor < 0.2f) zoom_factor = 0.2f;   // max zoom out
+                if (zoom_factor > 5.0f) zoom_factor = 5.0f;   // max zoom in
+            }
+        }
+
         // drawing
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -56,7 +87,7 @@ public:
         if (is_hovered) {
             ImVec2 mouse_pos = ImGui::GetIO().MousePos;
             auto [hover_x, hover_y] = MouseToCell(mouse_pos, canvas_pos, char_size);
-            if (hover_x >= 0 && hover_x <= canvas_size.x && hover_y >= 0 && hover_y <= canvas_size.y) {
+            if (hover_x >= 0 && hover_x <= canvas.width && hover_y >= 0 && hover_y <= canvas.height) {
                 ImVec2 hover_min = ImVec2(
                     canvas_pos.x + hover_x * char_size.x,
                     canvas_pos.y + hover_y * char_size.y
@@ -78,7 +109,7 @@ public:
                     canvas_pos.y + y * char_size.y
                 );
                 char buf[2] = { cell.glyph, '\0' };
-                draw_list->AddText(pos, cell.col_fg, buf);
+                draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * zoom_factor, pos, cell.col_fg, buf);
             };
         };
         ImGui::End();
@@ -92,7 +123,7 @@ private:
             draw_list->AddLine(
                 ImVec2(x_pos, canvas_pos.y), 
                 ImVec2(x_pos, canvas_pos.y + canvas_size.y), 
-                grid_color
+                x % 5 == 0 ? grid_color_secondary : grid_color_first
             );
         }
 
@@ -101,7 +132,7 @@ private:
             draw_list->AddLine(
                 ImVec2(canvas_pos.x, y_pos), 
                 ImVec2(canvas_pos.x + canvas_size.x, y_pos), 
-                grid_color
+                y % 5 == 0 ? grid_color_secondary : grid_color_first
             );
         }
     }
