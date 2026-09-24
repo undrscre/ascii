@@ -27,14 +27,19 @@ add_subdirectory(lib/glfw)
 
 # Project files
 add_executable(ascii src/main.cpp
-    src/gui/MenuBar.cpp)
+    src/gui/MenuBar.cpp
+    src/gui/Viewport.cpp
+    src/gui/Toolbar.cpp
+    src/gui/CharacterPalette.cpp)
 # target_sources(..)
 
 # Linkage
+# target_link_libraries(imgui PUBLIC glfw)
 target_link_libraries(ascii PRIVATE 
     glfw
     imgui
     OpenGL::GL
 )
 
+target_include_directories(ascii PUBLIC lib/glfw/include)
 target_include_directories(ascii PUBLIC lib/)
