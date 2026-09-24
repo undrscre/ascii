@@ -7,13 +7,17 @@
 #include <GLFW/glfw3.h>
 
 // my data type :)
+#include "core/State.h"
 #include "core/Canvas.h"
+#include "gui/CharacterPalette.h"
 #include "gui/CanvasViewport.h"
+#include "gui/MenuBar.h"
+#include "gui/Toolbar.h"
 
 GLFWwindow* initializeWindow() {
     // Initialize GLFW window
     if (!glfwInit()) return nullptr;
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Hello world!", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "ascii", nullptr, nullptr);
     if (!window) { glfwTerminate(); return nullptr; }
 
     glfwMakeContextCurrent(window);
@@ -38,11 +42,15 @@ int main() {
     if (window == nullptr) { return -1; }
 
     Canvas canvas(80, 25);
+    UserState state(canvas);
     canvas.SetCell(0, 0, 'A', 0xFFFFFFFF, 0x000000FF);
     canvas.SetCell(1, 1, 'B', 0xFF0000FF, 0x000000FF);
     canvas.SetCell(2, 2, 'C', 0xFF00FF00, 0x000000FF);
     canvas.SetCell(3, 3, 'D', 0xFFFF0000, 0x000000FF);
 
+    Toolbar toolbar;
+    MenuBar menu_bar;
+    CharacterPalette character_palette;
     CanvasViewport viewport;
 
     // Main loop
@@ -54,11 +62,11 @@ int main() {
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-        ImGui::Begin("Test!");
-        ImGui::Text("Lalala..");
-        ImGui::End();
-
-        viewport.RenderCanvas(canvas);
+        menu_bar.RenderBar(state);
+        character_palette.RenderCharPalette(state);
+        viewport.RenderCanvas(state, state.current_canvas);
+        toolbar.RenderToolbar(state);
+        
         ImGui::Render();
 
         int display_w, display_h;

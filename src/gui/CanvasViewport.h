@@ -1,30 +1,34 @@
 #pragma once
 
 #include "imgui.h"
+#include "../core/State.h"
 #include "../core/Canvas.h"
-#include <iostream>
 #include <tuple>
 
+// probably offload this to a .cpp file
 class CanvasViewport {
 public:
     float zoom_factor = 1.0f;
     ImVec2 pan_offset = ImVec2(0.0f, 0.0f);
 
-    bool render_grid = true;
     ImColor grid_color_first = IM_COL32(50, 50, 50, 255);
     ImColor grid_color_secondary = IM_COL32(80, 80, 80, 255);
- 
+    
+    ImVec2 char_size;
+    ImVec2 canvas_pos;
+    ImVec2 canvas_size;
+
     // TODO: render with custom font
-    void RenderCanvas(Canvas& canvas) {
+    void RenderCanvas(UserState& state, Canvas& canvas) {
         ImGui::Begin("Canvas Viewport", nullptr);
 
         ImVec2 base_char_size = ImGui::CalcTextSize("M");
-        ImVec2 char_size = ImVec2(
+        char_size = ImVec2(
             base_char_size.x * zoom_factor,
             base_char_size.y * zoom_factor
         );
 
-        ImVec2 canvas_size = ImVec2(
+        canvas_size = ImVec2(
             canvas.width * char_size.x, 
             canvas.height * char_size.y
         );
@@ -34,27 +38,61 @@ public:
         float offset_y = (avail_size.y - canvas_size.y) * 0.5f;
 
         ImVec2 start_cursor = ImGui::GetCursorScreenPos();
-        ImVec2 canvas_pos = ImVec2(
+        canvas_pos = ImVec2(
             start_cursor.x + (offset_x > 0.0f ? offset_x : 0.0f) + pan_offset.x,
             start_cursor.y + (offset_y > 0.0f ? offset_y : 0.0f) + pan_offset.y
         );
 
-        ImGui::SetCursorScreenPos(canvas_pos);
-
-        // inputs
-        ImGui::InvisibleButton("##canvas_hitbox", canvas_size, 
+        ImGui::InvisibleButton("##canvas_hitbox", avail_size, 
             ImGuiButtonFlags_MouseButtonLeft | 
             ImGuiButtonFlags_MouseButtonRight |
             ImGuiButtonFlags_MouseButtonMiddle
         );
 
+        ImGui::SetCursorScreenPos(canvas_pos);
+        HandleInput(state, canvas);
+
+        // drawing
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        if (ImGui::IsWindowHovered()) {
+            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+            auto [hover_x, hover_y] = MouseToCell(mouse_pos, canvas_pos, char_size);
+            if (hover_x >= 0 && hover_x < canvas.width && hover_y >= 0 && hover_y < canvas.height) {
+                ImVec2 hover_min = ImVec2(
+                    canvas_pos.x + hover_x * char_size.x,
+                    canvas_pos.y + hover_y * char_size.y
+                );
+                ImVec2 hover_max = ImVec2(
+                    hover_min.x + char_size.x,
+                    hover_min.y + char_size.y
+                );
+                draw_list->AddRectFilled(hover_min, hover_max, IM_COL32(255, 255, 255, 30));
+                draw_list->AddRect(hover_min, hover_max, IM_COL32(255, 255, 255, 120));
+            }
+        }
+        if (state.render_canvas_grid) DrawGrid(draw_list, canvas);
+        for (int y = 0; y < canvas.height; y++) {
+            for (int x = 0; x < canvas.width; x++) {
+                const Cell& cell = canvas.GetCell(x, y);
+                ImVec2 pos(
+                    canvas_pos.x + x * char_size.x,
+                    canvas_pos.y + y * char_size.y
+                );
+                char buf[2] = { cell.glyph, '\0' };
+                draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * zoom_factor, pos, cell.col_fg, buf);
+            };
+        };
+        ImGui::End();
+    };
+    
+    void HandleInput(UserState& state, Canvas& canvas) {
         bool is_active = ImGui::IsItemActive();
         bool is_hovered = ImGui::IsItemHovered();
 
         if (is_active && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             ImVec2 mouse_pos = ImGui::GetIO().MousePos;
             auto [cell_x, cell_y] = MouseToCell(mouse_pos, canvas_pos, char_size);
-            canvas.SetCell(cell_x, cell_y, '#', 0xFFFFFFFF, 0xFFFFFFFF);
+            canvas.SetCell(cell_x, cell_y, state.selected_character , 0xFFFFFFFF, 0xFFFFFFFF);
         }
 
         if (is_active && ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
@@ -79,45 +117,10 @@ public:
                 if (zoom_factor > 5.0f) zoom_factor = 5.0f;   // max zoom in
             }
         }
-
-        // drawing
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-        if (render_grid) DrawGrid(draw_list, canvas, canvas_pos, char_size, canvas_size);
-        if (is_hovered) {
-            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            auto [hover_x, hover_y] = MouseToCell(mouse_pos, canvas_pos, char_size);
-            if (hover_x >= 0 && hover_x <= canvas.width && hover_y >= 0 && hover_y <= canvas.height) {
-                ImVec2 hover_min = ImVec2(
-                    canvas_pos.x + hover_x * char_size.x,
-                    canvas_pos.y + hover_y * char_size.y
-                );
-                ImVec2 hover_max = ImVec2(
-                    hover_min.x + char_size.x,
-                    hover_min.y + char_size.y
-                );
-                draw_list->AddRectFilled(hover_min, hover_max, IM_COL32(255, 255, 255, 30));
-                draw_list->AddRect(hover_min, hover_max, IM_COL32(255, 255, 255, 120));
-            }
-        }
-
-        for (int y = 0; y < canvas.height; y++) {
-            for (int x = 0; x < canvas.width; x++) {
-                const Cell& cell = canvas.GetCell(x, y);
-                ImVec2 pos(
-                    canvas_pos.x + x * char_size.x,
-                    canvas_pos.y + y * char_size.y
-                );
-                char buf[2] = { cell.glyph, '\0' };
-                draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * zoom_factor, pos, cell.col_fg, buf);
-            };
-        };
-        ImGui::End();
-    };
-
+    }
 private:
 
-    void DrawGrid(ImDrawList* draw_list, const Canvas canvas, ImVec2 canvas_pos, ImVec2 char_size, ImVec2 canvas_size) {
+    void DrawGrid(ImDrawList* draw_list, const Canvas canvas) {
         for (int x = 0; x <= canvas.width; x++) {
             float x_pos = canvas_pos.x + x * char_size.x;
             draw_list->AddLine(

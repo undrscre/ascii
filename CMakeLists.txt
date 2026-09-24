@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(ascii VERSION 0.0.0)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Libraries
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
 add_library(imgui STATIC
@@ -22,7 +26,8 @@ target_include_directories(imgui PUBLIC
 add_subdirectory(lib/glfw)
 
 # Project files
-add_executable(ascii src/main.cpp)
+add_executable(ascii src/main.cpp
+    src/gui/MenuBar.cpp)
 # target_sources(..)
 
 # Linkage
