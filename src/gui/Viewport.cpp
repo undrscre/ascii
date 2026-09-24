@@ -1,7 +1,6 @@
 #include "Viewport.h"
 #include "imgui.h"
 #include "imgui_internal.h"
-#include <X11/X.h>
 #include <cmath>
 
 void Viewport::RenderCanvas(UserState& state, Canvas& canvas) {
