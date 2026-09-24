@@ -10,7 +10,7 @@
 #include "core/State.h"
 #include "core/Canvas.h"
 #include "gui/CharacterPalette.h"
-#include "gui/CanvasViewport.h"
+#include "gui/Viewport.h"
 #include "gui/MenuBar.h"
 #include "gui/Toolbar.h"
 
@@ -51,7 +51,7 @@ int main() {
     Toolbar toolbar;
     MenuBar menu_bar;
     CharacterPalette character_palette;
-    CanvasViewport viewport;
+    Viewport viewport;
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -66,7 +66,7 @@ int main() {
         character_palette.RenderCharPalette(state);
         viewport.RenderCanvas(state, state.current_canvas);
         toolbar.RenderToolbar(state);
-        
+
         ImGui::Render();
 
         int display_w, display_h;
