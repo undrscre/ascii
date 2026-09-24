@@ -17,6 +17,7 @@ public:
     ImVec2 canvas_pos;
     ImVec2 canvas_size;
 
+    int kb_cursor_x, kb_cursor_y, kb_starting_point = 0;
     // TODO: render with custom font
     void RenderCanvas(UserState& state, Canvas& canvas);
     
@@ -29,10 +30,13 @@ private:
     };
 
     void DrawHoverHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state);
-    void HandleNavigation();
+    void HandleNavigation(UserState& state);
     void DrawGrid(ImDrawList* draw_list, const Canvas& canvas);
 
     // todo move this somewhere
     void HandleToolInteraction(Canvas& canvas, UserState& state);
     void DrawCells(ImDrawList* draw_list, const Canvas& canvas);
+    void DrawKeyboardHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state);
+    void DrawStatusBar(ImDrawList* draw_list, const UserState& state);
+    void HandleKeyboardMode(Canvas& canvas, UserState& state);
 };

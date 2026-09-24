@@ -16,4 +16,7 @@ public:
 
     Canvas& current_canvas;
     ToolType current_tool = ToolType::Brush;
+
+    // keyboard mode
+    bool keyboard_mode = false;
 };

@@ -43,10 +43,6 @@ int main() {
 
     Canvas canvas(80, 25);
     UserState state(canvas);
-    canvas.SetCell(0, 0, 'A', 0xFFFFFFFF, 0x000000FF);
-    canvas.SetCell(1, 1, 'B', 0xFF0000FF, 0x000000FF);
-    canvas.SetCell(2, 2, 'C', 0xFF00FF00, 0x000000FF);
-    canvas.SetCell(3, 3, 'D', 0xFFFF0000, 0x000000FF);
 
     Toolbar toolbar;
     MenuBar menu_bar;

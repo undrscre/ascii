@@ -4,6 +4,7 @@
 
 void Toolbar::RenderToolbar(UserState& state) {
     if (ImGui::BeginViewportSideBar("Toolbar", ImGui::GetMainViewport(), ImGuiDir_Down, 36.f, ImGuiWindowFlags_NoScrollbar)) {
+        if (ImGui::RadioButton("Select", state.current_tool == ToolType::Select))   state.current_tool = ToolType::Select;  ImGui::SameLine();
         if (ImGui::RadioButton("Brush", state.current_tool == ToolType::Brush))   state.current_tool = ToolType::Brush;  ImGui::SameLine();
         if (ImGui::RadioButton("Picker", state.current_tool == ToolType::Picker)) state.current_tool = ToolType::Picker; ImGui::SameLine();
 
