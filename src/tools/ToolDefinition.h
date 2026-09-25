@@ -19,7 +19,7 @@ static constexpr ToolInfo ToolbarTools[] = {
     { ToolType::Select, "Select" },
     { ToolType::Brush,  "Brush"  },
     { ToolType::Picker, "Picker" },
-    { ToolType::Picker, "Shape" },
-    { ToolType::Picker, "Bucket" },
-    { ToolType::Picker, "Text" },
+    { ToolType::Shape, "Shape" },
+    { ToolType::Bucket, "Bucket" },
+    { ToolType::Text, "Text" },
 };

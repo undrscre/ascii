@@ -3,6 +3,7 @@
 
 #include "Brush.h"
 #include "ITool.h"
+#include "Picker.h"
 #include "Select.h"
 #include "ToolDefinition.h"
 #include <memory>
@@ -14,6 +15,7 @@ public:
     ToolManager() {
         tools[ToolType::Select] = std::make_unique<SelectTool>();
         tools[ToolType::Brush] = std::make_unique<BrushTool>();
+        tools[ToolType::Picker] = std::make_unique<PickerTool>();
     }
 
     ITool* GetActiveTool(ToolType type) const {
