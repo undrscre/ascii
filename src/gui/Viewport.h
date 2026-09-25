@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "../core/State.h"
 #include "../core/Canvas.h"
+#include "../tools/ToolManager.h"
 
 class Viewport {
 public:
@@ -19,7 +20,7 @@ public:
 
     int kb_cursor_x, kb_cursor_y, kb_starting_point = 0;
     // TODO: render with custom font
-    void RenderCanvas(UserState& state, Canvas& canvas);
+    void RenderCanvas(UserState& state, Canvas& canvas, ToolManager& toolman);
     
 private:
     // TODO: decouple into like. a general helper lib or WHATEVER
@@ -34,7 +35,7 @@ private:
     void DrawGrid(ImDrawList* draw_list, const Canvas& canvas);
 
     // todo move this somewhere
-    void HandleToolInteraction(Canvas& canvas, UserState& state);
+    void HandleToolInteraction(Canvas& canvas, UserState& state, ToolManager& toolman);
     void DrawCells(ImDrawList* draw_list, const Canvas& canvas);
     void DrawKeyboardHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state);
     void DrawStatusBar(ImDrawList* draw_list, const UserState& state);

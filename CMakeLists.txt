@@ -26,11 +26,18 @@ target_include_directories(imgui PUBLIC
 add_subdirectory(lib/glfw)
 
 # Project files
-add_executable(ascii src/main.cpp
+add_executable(ascii 
+    src/main.cpp
+    
     src/gui/MenuBar.cpp
     src/gui/Viewport.cpp
     src/gui/Toolbar.cpp
-    src/gui/CharacterPalette.cpp)
+    src/gui/CharacterPalette.cpp
+    src/gui/ToolOptions.cpp
+
+    src/tools/Brush.cpp
+)
+
 # target_sources(..)
 
 # Linkage

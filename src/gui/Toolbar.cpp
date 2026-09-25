@@ -1,12 +1,33 @@
 #include "Toolbar.h"
+
 #include "imgui.h"
 #include "imgui_internal.h"
 
-void Toolbar::RenderToolbar(UserState& state) {
+void Toolbar::RenderToolbar(UserState& state, ToolManager& toolman) {
     if (ImGui::BeginViewportSideBar("Toolbar", ImGui::GetMainViewport(), ImGuiDir_Down, 36.f, ImGuiWindowFlags_NoScrollbar)) {
-        if (ImGui::RadioButton("Select", state.current_tool == ToolType::Select))   state.current_tool = ToolType::Select;  ImGui::SameLine();
-        if (ImGui::RadioButton("Brush", state.current_tool == ToolType::Brush))   state.current_tool = ToolType::Brush;  ImGui::SameLine();
-        if (ImGui::RadioButton("Picker", state.current_tool == ToolType::Picker)) state.current_tool = ToolType::Picker; ImGui::SameLine();
+        // if (ImGui::RadioButton("Select", state.current_tool == ToolType::Select))   state.current_tool = ToolType::Select;  ImGui::SameLine();
+        // if (ImGui::RadioButton("Brush", state.current_tool == ToolType::Brush))   state.current_tool = ToolType::Brush;  ImGui::SameLine();
+        // if (ImGui::RadioButton("Picker", state.current_tool == ToolType::Picker)) state.current_tool = ToolType::Picker; ImGui::SameLine();
+
+        for (const auto& tool : ToolbarTools) {
+            bool is_invalid = toolman.GetActiveTool(tool.type) == nullptr;
+            if (is_invalid) {
+                ImGui::BeginDisabled();
+            }
+
+            if (ImGui::RadioButton(tool.name, state.current_tool == tool.type)) {
+                state.current_tool = tool.type; 
+            }
+
+            if (is_invalid) {
+                ImGui::EndDisabled();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                    ImGui::SetTooltip("ERROR: Tool not implemented yet");
+;                }
+            }
+
+            ImGui::SameLine();
+        }
 
         ImVec4 fg_col = ImGui::ColorConvertU32ToFloat4(state.selected_fg_col);
         ImVec4 bg_col = ImGui::ColorConvertU32ToFloat4(state.selected_bg_col);

@@ -1,6 +1,6 @@
 #pragma once
 #include "Canvas.h"
-#include "Tools.h"
+#include "../tools/ToolDefinition.h"
 #include "imgui.h"
 
 class UserState {

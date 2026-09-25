@@ -3,7 +3,7 @@
 #include "imgui_internal.h"
 #include <cmath>
 
-void Viewport::RenderCanvas(UserState& state, Canvas& canvas) {
+void Viewport::RenderCanvas(UserState& state, Canvas& canvas, ToolManager& toolman) {
     ImGui::Begin("Canvas Viewport", nullptr);
 
     ImVec2 base_char_size = ImGui::CalcTextSize("M");
@@ -38,7 +38,7 @@ void Viewport::RenderCanvas(UserState& state, Canvas& canvas) {
 
     // ImGui::SetCursorScreenPos(canvas_pos);
     HandleNavigation(state);
-    HandleToolInteraction(canvas, state);
+    HandleToolInteraction(canvas, state, toolman);
     if (state.keyboard_mode) {
         HandleKeyboardMode(canvas, state);
     }
@@ -157,44 +157,14 @@ void Viewport::DrawGrid(ImDrawList* draw_list, const Canvas& canvas) {
     }
 }
 
-void Viewport::HandleToolInteraction(Canvas& canvas, UserState& state) {
-    if (ImGui::IsItemDeactivated() && state.current_tool == ToolType::Picker) {
-        state.current_tool = ToolType::Brush;
-    }
-
-    bool is_active = ImGui::IsItemActive();
-    if (!is_active) return;
-
+void Viewport::HandleToolInteraction(Canvas& canvas, UserState& state, ToolManager& toolman) {
     ImVec2 mouse_pos = ImGui::GetIO().MousePos;
     int cell_x, cell_y;
     ScreenToCell(mouse_pos, canvas_pos, char_size, cell_x, cell_y);
-
-    switch (state.current_tool) {
-        case ToolType::Select:
-            if (state.keyboard_mode) {
-                kb_cursor_x = cell_x;
-                kb_cursor_y = cell_y;
-                kb_starting_point = cell_x;
-            }
-            break;
-        case ToolType::Brush:
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-                canvas.SetCell(cell_x, cell_y, state.selected_character, state.selected_fg_col, state.selected_bg_col);
-            } else if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-                canvas.SetCell(cell_x, cell_y, ' ', 0xFFFFFFFF, 0xFFFFFFFF);
-            };
-            break;
-
-        case ToolType::Picker:
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-                Cell cell = canvas.GetCell(cell_x, cell_y);
-                state.selected_character = cell.glyph;
-                state.selected_bg_col = cell.col_bg;
-                state.selected_fg_col = cell.col_fg;
-            }
-            break;
-
-        default: break;
+    
+    ITool* active = toolman.GetActiveTool(state.current_tool);
+    if (active != nullptr) {
+        active->OnCanvasInteract(canvas, state, cell_x, cell_y);
     }
 }
 
@@ -204,6 +174,8 @@ void Viewport::DrawCells(ImDrawList* draw_list, const Canvas& canvas) {
     for (int y = 0; y < canvas.height; y++) {
         for (int x = 0; x < canvas.width; x++) {
             const Cell& cell = canvas.GetCell(x, y);
+            if (cell.glyph == ' ' || cell.glyph == '\0') continue;
+            
             ImVec2 pos(
                 canvas_pos.x + x * char_size.x,
                 canvas_pos.y + y * char_size.y

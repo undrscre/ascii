@@ -1,5 +1,6 @@
 #include <GL/gl.h>
 
+#include "gui/ToolOptions.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -9,10 +10,13 @@
 // my data type :)
 #include "core/State.h"
 #include "core/Canvas.h"
+
 #include "gui/CharacterPalette.h"
 #include "gui/Viewport.h"
 #include "gui/MenuBar.h"
 #include "gui/Toolbar.h"
+#include "gui/ToolOptions.h"
+#include "tools/ToolManager.h"
 
 GLFWwindow* initializeWindow() {
     // Initialize GLFW window
@@ -28,7 +32,7 @@ GLFWwindow* initializeWindow() {
     ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -44,10 +48,13 @@ int main() {
     Canvas canvas(80, 25);
     UserState state(canvas);
 
+    ToolManager toolman;
+
     Toolbar toolbar;
     MenuBar menu_bar;
     CharacterPalette character_palette;
     Viewport viewport;
+    ToolOptions tool_options;
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -58,10 +65,11 @@ int main() {
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
+        tool_options.RenderToolOptions(state, toolman);
         menu_bar.RenderBar(state);
         character_palette.RenderCharPalette(state);
-        viewport.RenderCanvas(state, state.current_canvas);
-        toolbar.RenderToolbar(state);
+        viewport.RenderCanvas(state, state.current_canvas, toolman);
+        toolbar.RenderToolbar(state, toolman);
 
         ImGui::Render();
 
