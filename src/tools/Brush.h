@@ -3,9 +3,11 @@
 
 class BrushTool : public ITool {
 public:
-    const char name[10] = "Brush";
     int brush_size = 1;
+    bool recolor_mode = false;
+    bool rainbow_mode = false;
 
     void RenderToolOptions(UserState& state) override;
     void OnCanvasInteract(Canvas& canvas, UserState& state, int cell_x, int cell_y) override;
+    void OnCanvasHover(ImDrawList* draw_list, const UserState& state, const Canvas& canvas, ImVec2 canvas_pos, ImVec2 char_size) override;
 };

@@ -30,7 +30,7 @@ private:
         return true;
     };
 
-    void DrawHoverHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state);
+    void DrawHoverHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state, const ToolManager& toolman);
     void HandleNavigation(UserState& state);
     void DrawGrid(ImDrawList* draw_list, const Canvas& canvas);
 

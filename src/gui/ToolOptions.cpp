@@ -7,7 +7,7 @@ void ToolOptions::RenderToolOptions(UserState& state, ToolManager& toolman) {
     if (active != nullptr) {
         active->RenderToolOptions(state);
     } else {
-        ImGui::TextDisabled("No configurable options for this tool.");
+        ImGui::TextDisabled("No tool was selected.");
     }
     ImGui::End();
 }

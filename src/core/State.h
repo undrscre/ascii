@@ -2,6 +2,7 @@
 #include "Canvas.h"
 #include "../tools/ToolDefinition.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 
 class UserState {
 public:
@@ -15,8 +16,17 @@ public:
     char selected_character = '#';
 
     Canvas& current_canvas;
-    ToolType current_tool = ToolType::Brush;
+    ToolType current_tool = ToolType::Select;
 
     // keyboard mode
     bool keyboard_mode = false;
+    int kb_cursor_x = 0;
+    int kb_cursor_y = 0;
+    int kb_starting_point = 0;
+
+    // selection
+    bool is_selected  = false;
+    bool has_selected = false;
+    ImVec2i select_start {-1, -1};
+    ImVec2i select_end   {-1, -1};
 };

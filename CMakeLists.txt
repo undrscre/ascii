@@ -26,7 +26,7 @@ target_include_directories(imgui PUBLIC
 add_subdirectory(lib/glfw)
 
 # Project files
-add_executable(ascii 
+add_executable(${PROJECT_NAME} 
     src/main.cpp
     
     src/gui/MenuBar.cpp
@@ -36,17 +36,34 @@ add_executable(ascii
     src/gui/ToolOptions.cpp
 
     src/tools/Brush.cpp
+    src/tools/Select.cpp
 )
 
 # target_sources(..)
 
 # Linkage
 # target_link_libraries(imgui PUBLIC glfw)
-target_link_libraries(ascii PRIVATE 
+target_link_libraries(${PROJECT_NAME} PRIVATE 
     glfw
     imgui
     OpenGL::GL
 )
 
-target_include_directories(ascii PUBLIC lib/glfw/include)
-target_include_directories(ascii PUBLIC lib/)
+target_include_directories(${PROJECT_NAME} PUBLIC lib/glfw/include)
+target_include_directories(${PROJECT_NAME} PUBLIC lib/)
+
+# thanks https://stackoverflow.com/questions/51727566/
+execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")

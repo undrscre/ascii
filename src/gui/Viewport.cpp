@@ -51,53 +51,26 @@ void Viewport::RenderCanvas(UserState& state, Canvas& canvas, ToolManager& toolm
 
     DrawCells(draw_list, canvas);
     if (state.keyboard_mode) DrawKeyboardHighlight(draw_list, canvas, state);
-    DrawHoverHighlight(draw_list, canvas, state);
+    DrawHoverHighlight(draw_list, canvas, state, toolman);
     
     DrawStatusBar(draw_list, state);
     ImGui::End();
 }
 
-void Viewport::DrawHoverHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state) {
+void Viewport::DrawHoverHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state, const ToolManager& toolman) {
     if (ImGui::IsWindowHovered() || ImGui::IsItemActive()) {
-        int hover_x, hover_y;
-        ImFont* font = ImGui::GetFont();
-        float font_size = ImGui::GetFontSize() * zoom_factor;
-
-        ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-        ScreenToCell(mouse_pos, canvas_pos, char_size, hover_x, hover_y);
-
-        if (hover_x >= 0 && hover_x < canvas.width && hover_y >= 0 && hover_y < canvas.height) {
-            ImVec2 hover_min = ImVec2(
-                canvas_pos.x + hover_x * char_size.x,
-                canvas_pos.y + hover_y * char_size.y
-            );
-            ImVec2 hover_max = ImVec2(
-                hover_min.x + char_size.x,
-                hover_min.y + char_size.y
-            );
-            draw_list->AddRectFilled(hover_min, hover_max, IM_COL32(255, 255, 255, 30));
-            draw_list->AddRect(hover_min, hover_max, IM_COL32(255, 255, 255, 120));
-
-            ImVec2 pos(
-                canvas_pos.x + hover_x * char_size.x,
-                canvas_pos.y + hover_y * char_size.y
-            );
-            ImColor faint(
-                state.selected_fg_col.Value.x,
-                state.selected_fg_col.Value.y,
-                state.selected_fg_col.Value.z,
-                0.25f
-            );
-            draw_list->AddText(font, font_size, pos, faint, &state.selected_character);
+        ITool* active = toolman.GetActiveTool(state.current_tool);
+        if (active != nullptr) {
+            active->OnCanvasHover(draw_list, state, canvas, canvas_pos, char_size);
         }
     }
 }
 
 void Viewport::DrawKeyboardHighlight(ImDrawList* draw_list, const Canvas& canvas, const UserState& state) {
-    if (kb_cursor_x >= 0 && kb_cursor_x < canvas.width && kb_cursor_y >= 0 && kb_cursor_y < canvas.height) {
+    if (state.kb_cursor_x >= 0 && state.kb_cursor_x < canvas.width && state.kb_cursor_y >= 0 && state.kb_cursor_y < canvas.height) {
         ImVec2 hover_min = ImVec2(
-            canvas_pos.x + kb_cursor_x * char_size.x,
-            canvas_pos.y + kb_cursor_y * char_size.y
+            canvas_pos.x + state.kb_cursor_x * char_size.x,
+            canvas_pos.y + state.kb_cursor_y * char_size.y
         );
         ImVec2 hover_max = ImVec2(
             hover_min.x + char_size.x,
@@ -131,33 +104,36 @@ void Viewport::HandleNavigation(UserState& state) {
             if (zoom_factor > 5.0f) zoom_factor = 5.0f;   // max zoom in
         }
     }
-
-    if (ImGui::IsWindowFocused() && ImGui::IsKeyPressed(ImGuiKey_Tab, false)) {
-        state.keyboard_mode = !state.keyboard_mode;
-    }
 }
 
 void Viewport::DrawGrid(ImDrawList* draw_list, const Canvas& canvas) {
-    for (int x = 0; x <= canvas.width; x++) {
+    bool show_fine_grid = zoom_factor > 0.5f; // hide fine grid if zoomed out
+    int step = show_fine_grid ? 1 : 5;
+
+    for (int x = 0; x <= canvas.width; x += step) {
         float x_pos = canvas_pos.x + x * char_size.x;
+        ImU32 color = (x % 5 == 0) ? grid_color_secondary : grid_color_first;
         draw_list->AddLine(
             ImVec2(x_pos, canvas_pos.y), 
             ImVec2(x_pos, canvas_pos.y + canvas_size.y), 
-            x % 5 == 0 ? grid_color_secondary : grid_color_first
+            color
         );
     }
 
-    for (int y = 0; y <= canvas.height; y++) {
+    for (int y = 0; y <= canvas.height; y += step) {
         float y_pos = canvas_pos.y + y * char_size.y;
+        ImU32 color = (y % 5 == 0) ? grid_color_secondary : grid_color_first;
         draw_list->AddLine(
             ImVec2(canvas_pos.x, y_pos), 
             ImVec2(canvas_pos.x + canvas_size.x, y_pos), 
-            y % 5 == 0 ? grid_color_secondary : grid_color_first
+            color
         );
     }
 }
 
 void Viewport::HandleToolInteraction(Canvas& canvas, UserState& state, ToolManager& toolman) {
+    if (!ImGui::IsWindowFocused() || !ImGui::IsItemHovered()) return; 
+
     ImVec2 mouse_pos = ImGui::GetIO().MousePos;
     int cell_x, cell_y;
     ScreenToCell(mouse_pos, canvas_pos, char_size, cell_x, cell_y);
@@ -206,40 +182,40 @@ void Viewport::HandleKeyboardMode(Canvas& canvas, UserState& state) {
 
     ImGuiIO& io = ImGui::GetIO();
 
-    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, true))  kb_cursor_x = ImClamp(kb_cursor_x - 1, 0, canvas.width - 1);
-    if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true)) kb_cursor_x = ImClamp(kb_cursor_x + 1, 0, canvas.width - 1);
-    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true))    kb_cursor_y = ImClamp(kb_cursor_y - 1, 0, canvas.height - 1);
-    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, true))  kb_cursor_y = ImClamp(kb_cursor_y + 1, 0, canvas.height - 1);
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, true))  state.kb_cursor_x = ImClamp(state.kb_cursor_x - 1, 0, canvas.width - 1);
+    if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true)) state.kb_cursor_x = ImClamp(state.kb_cursor_x + 1, 0, canvas.width - 1);
+    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true))    state.kb_cursor_y = ImClamp(state.kb_cursor_y - 1, 0, canvas.height - 1);
+    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, true))  state.kb_cursor_y = ImClamp(state.kb_cursor_y + 1, 0, canvas.height - 1);
 
     for (int n = 0; n < io.InputQueueCharacters.Size; n++) {
         unsigned int c = io.InputQueueCharacters[n];
         
         if (c >= 32 && c <= 126) {
-            canvas.SetCell(kb_cursor_x, kb_cursor_y, static_cast<char>(c), state.selected_fg_col, state.selected_bg_col);
-            kb_cursor_x++;
-            if (kb_cursor_x >= canvas.width) {
-                kb_cursor_x = 0;
-                if (kb_cursor_y < canvas.height - 1) {
-                    kb_cursor_y++;
+            canvas.SetCell(state.kb_cursor_x, state.kb_cursor_y, static_cast<char>(c), state.selected_fg_col, state.selected_bg_col);
+            state.kb_cursor_x++;
+            if (state.kb_cursor_x >= canvas.width) {
+                state.kb_cursor_x = 0;
+                if (state.kb_cursor_y < canvas.height - 1) {
+                    state.kb_cursor_y++;
                 }
             }
         }
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_Backspace, true)) {
-        if (kb_cursor_x > 0) {
-            kb_cursor_x--;
-        } else if (kb_cursor_y > 0) {
-            kb_cursor_y--;
-            kb_cursor_x = canvas.width - 1;
+        if (state.kb_cursor_x > 0) {
+            state.kb_cursor_x--;
+        } else if (state.kb_cursor_y > 0) {
+            state.kb_cursor_y--;
+            state.kb_cursor_x = canvas.width - 1;
         }
-        canvas.SetCell(kb_cursor_x, kb_cursor_y, ' ', state.selected_fg_col, state.selected_bg_col);
+        canvas.SetCell(state.kb_cursor_x, state.kb_cursor_y, ' ', state.selected_fg_col, state.selected_bg_col);
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_Enter, true) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, true)) {
-        kb_cursor_x = kb_starting_point;
-        if (kb_cursor_y < canvas.height - 1) {
-            kb_cursor_y++;
+        state.kb_cursor_x = state.kb_starting_point;
+        if (state.kb_cursor_y < canvas.height - 1) {
+            state.kb_cursor_y++;
         }
     }
 }

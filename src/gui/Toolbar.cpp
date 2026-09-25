@@ -48,9 +48,6 @@ void Toolbar::RenderToolbar(UserState& state, ToolManager& toolman) {
         }; ImGui::SameLine();
 
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical); ImGui::SameLine();
-        ImGui::Checkbox("Grid", &state.render_canvas_grid); ImGui::SameLine();
-
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical); ImGui::SameLine();
         ImGui::Text("Selected character: %c", state.selected_character); ImGui::SameLine();
 
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical); ImGui::SameLine();

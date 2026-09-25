@@ -25,7 +25,7 @@ GLFWwindow* initializeWindow() {
     if (!window) { glfwTerminate(); return nullptr; }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     // Initialize ImGui
     IMGUI_CHECKVERSION();
@@ -40,6 +40,18 @@ GLFWwindow* initializeWindow() {
 
     return window;
 };
+
+// refactor maybe
+void CaptureGlobalInput(UserState& state) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Tab, false)) {
+        state.keyboard_mode = !state.keyboard_mode;
+    }
+
+    if (ImGui::GetIO().WantCaptureKeyboard || state.keyboard_mode) return;
+
+    if (ImGui::IsKeyPressed(ImGuiKey_1, false)) state.current_tool = ToolType::Select;
+    if (ImGui::IsKeyPressed(ImGuiKey_2, false)) state.current_tool = ToolType::Brush;
+}
 
 int main() {
     GLFWwindow* window = initializeWindow();
@@ -65,6 +77,7 @@ int main() {
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
+        CaptureGlobalInput(state);
         tool_options.RenderToolOptions(state, toolman);
         menu_bar.RenderBar(state);
         character_palette.RenderCharPalette(state);
@@ -83,3 +96,4 @@ int main() {
         glfwSwapBuffers(window);
     }
 }
+

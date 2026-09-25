@@ -5,6 +5,9 @@ enum ToolType {
     Select,
     Brush,
     Picker,
+    Shape,
+    Bucket,
+    Text,
 };
 
 struct ToolInfo {
@@ -15,5 +18,8 @@ struct ToolInfo {
 static constexpr ToolInfo ToolbarTools[] = {
     { ToolType::Select, "Select" },
     { ToolType::Brush,  "Brush"  },
-    { ToolType::Picker, "Picker" }
+    { ToolType::Picker, "Picker" },
+    { ToolType::Picker, "Shape" },
+    { ToolType::Picker, "Bucket" },
+    { ToolType::Picker, "Text" },
 };
