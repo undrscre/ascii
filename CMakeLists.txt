@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
 
     src/tools/Brush.cpp
     src/tools/Select.cpp
+    src/tools/Shape.cpp
 )
 
 # target_sources(..)

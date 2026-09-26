@@ -16,7 +16,7 @@ public:
     char selected_character = '#';
 
     Canvas& current_canvas;
-    ToolType current_tool = ToolType::Select;
+    ToolType current_tool = ToolType::SELECT;
 
     // keyboard mode
     bool keyboard_mode = false;

@@ -23,7 +23,7 @@ void Toolbar::RenderToolbar(UserState& state, ToolManager& toolman) {
                 ImGui::EndDisabled();
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
                     ImGui::SetTooltip("ERROR: Tool not implemented yet");
-;                }
+                }
             }
 
             ImGui::SameLine();

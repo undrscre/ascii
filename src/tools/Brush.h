@@ -1,10 +1,18 @@
 #pragma once
 #include "ITool.h"
 
+enum BrushType {
+    NORMAL,
+    RECOLOR,
+    REPLACE,
+    RANDOM
+};
+
 class BrushTool : public ITool {
 public:
     int brush_size = 1;
-    bool recolor_mode = false;
+    BrushType selected_type = BrushType::NORMAL;
+
     bool rainbow_mode = false;
 
     void RenderToolOptions(UserState& state) override;

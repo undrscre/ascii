@@ -15,7 +15,7 @@ public:
         }
 
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-            state.current_tool = ToolType::Brush;
+            state.current_tool = ToolType::BRUSH;
         }
     };
 };

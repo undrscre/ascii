@@ -1,12 +1,44 @@
 #include "Brush.h"
 #include "imgui.h"
 
+#include <random>
+
+char GetRandomASCII() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    
+    std::uniform_int_distribution<int> distrib(32, 126);
+    
+    return static_cast<char>(distrib(gen));
+}
+
+
 void BrushTool::RenderToolOptions(UserState& state) {
     ImGui::Text("Tool options for Brush:");
     ImGui::Separator();
     ImGui::SliderInt("Brush size", &brush_size, 1, 40);
     ImGui::Separator();
-    ImGui::Checkbox("Recolor mode", &recolor_mode);
+    if (ImGui::RadioButton("Normal mode", selected_type == BrushType::NORMAL)) {
+        selected_type = BrushType::NORMAL;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("This does what you think it does.");
+
+    if (ImGui::RadioButton("Recolor mode", selected_type == BrushType::RECOLOR)) {
+        selected_type = BrushType::RECOLOR;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Recolors the character within the radius.");
+
+    if (ImGui::RadioButton("Replace mode", selected_type == BrushType::REPLACE)) {
+        selected_type = BrushType::REPLACE;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Replaces character within the radius.");
+
+    if (ImGui::RadioButton("Random mode", selected_type == BrushType::RANDOM)) {
+        selected_type = BrushType::RANDOM;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Draws random ASCII characters to the canvas.");
+
+    ImGui::Separator();
     ImGui::Checkbox("Rainbow mode", &rainbow_mode);
 }
 
@@ -21,18 +53,28 @@ void BrushTool::OnCanvasInteract(Canvas& canvas, UserState& state, int cell_x, i
 
                 ImColor final_col = state.selected_fg_col;
                 if (rainbow_mode) {
-                    float hue = fmodf(0.2f + (cell_x + cell_y) * 0.05f, 1.0f);
+                    float hue = fmodf(0.2f + (target_x + target_y) * 0.05f, 1.0f);
 
                     float r, g, b;
                     ImGui::ColorConvertHSVtoRGB(hue, 1.0f, 1.0f, r, g, b);
                     final_col = ImColor(r, g, b, 1.0f);
                 }
 
-                if (recolor_mode) {
-                    Cell previous = canvas.GetCell(target_x, target_y);
-                    canvas.SetCell(target_x, target_y, previous.glyph, final_col, state.selected_bg_col);
-                } else {
-                    canvas.SetCell(target_x, target_y, state.selected_character, final_col, state.selected_bg_col);
+                Cell previous = canvas.GetCell(target_x, target_y);
+                switch (selected_type) {
+                    case BrushType::NORMAL:
+                        canvas.SetCell(target_x, target_y, state.selected_character, final_col, state.selected_bg_col);
+                        break;
+                    case BrushType::RECOLOR:
+                        canvas.SetCell(target_x, target_y, previous.glyph, final_col, state.selected_bg_col);
+                        break;
+                    case BrushType::REPLACE:
+                        canvas.SetCell(target_x, target_y, state.selected_character, previous.col_fg, previous.col_bg);
+                        break;
+                    case BrushType::RANDOM:
+                        canvas.SetCell(target_x, target_y, GetRandomASCII(), final_col, state.selected_bg_col);
+                        break;
+                    default: break;
                 }
             }
         }

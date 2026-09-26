@@ -2,12 +2,12 @@
 // hastily put on together . might have to refactor
 
 enum ToolType {
-    Select,
-    Brush,
-    Picker,
-    Shape,
-    Bucket,
-    Text,
+    SELECT,
+    BRUSH,
+    PICKER,
+    SHAPE,
+    BUCKET,
+    TEXT,
 };
 
 struct ToolInfo {
@@ -16,10 +16,10 @@ struct ToolInfo {
 };
 
 static constexpr ToolInfo ToolbarTools[] = {
-    { ToolType::Select, "Select" },
-    { ToolType::Brush,  "Brush"  },
-    { ToolType::Picker, "Picker" },
-    { ToolType::Shape, "Shape" },
-    { ToolType::Bucket, "Bucket" },
-    { ToolType::Text, "Text" },
+    { ToolType::SELECT, "Select" },
+    { ToolType::BRUSH,  "Brush"  },
+    { ToolType::PICKER, "Picker" },
+    { ToolType::SHAPE, "Shape" },
+    { ToolType::BUCKET, "Bucket" },
+    { ToolType::TEXT, "Text" },
 };

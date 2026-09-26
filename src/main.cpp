@@ -49,9 +49,10 @@ void CaptureGlobalInput(UserState& state) {
 
     if (ImGui::GetIO().WantCaptureKeyboard || state.keyboard_mode) return;
 
-    if (ImGui::IsKeyPressed(ImGuiKey_1, false)) state.current_tool = ToolType::Select;
-    if (ImGui::IsKeyPressed(ImGuiKey_2, false)) state.current_tool = ToolType::Brush;
-    if (ImGui::IsKeyPressed(ImGuiKey_3, false)) state.current_tool = ToolType::Picker;
+    if (ImGui::IsKeyPressed(ImGuiKey_1, false)) state.current_tool = ToolType::SELECT;
+    if (ImGui::IsKeyPressed(ImGuiKey_2, false)) state.current_tool = ToolType::BRUSH;
+    if (ImGui::IsKeyPressed(ImGuiKey_3, false)) state.current_tool = ToolType::PICKER;
+    if (ImGui::IsKeyPressed(ImGuiKey_4, false)) state.current_tool = ToolType::SHAPE;
 }
 
 int main() {
